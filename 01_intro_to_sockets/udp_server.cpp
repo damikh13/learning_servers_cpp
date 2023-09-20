@@ -9,6 +9,7 @@
 
 const int PORT_NUMBER = 2023;
 const int BUF_SZ = 1024;
+const char* LOCAL_IP_OF_CLIENT = "";
 
 int main()
 {
@@ -37,8 +38,9 @@ int main()
     sockaddr_in server_address_info;
     memset(&server_address_info, 0, sizeof(server_address_info)); // fill with zeros
     server_address_info.sin_family = AF_INET; // IPv4
-    // server_address_info.sin_addr.s_addr = inet_addr("217.197.0.187");
-    server_address_info.sin_addr.s_addr = INADDR_ANY;
+    server_address_info.sin_addr.s_addr = inet_addr(LOCAL_IP_OF_CLIENT);
+
+    // server_address_info.sin_addr.s_addr = INADDR_ANY;
     server_address_info.sin_port = htons(PORT_NUMBER);
     //                             ^^^^^^^^^^^^^^^^^
     //                             converts the port number to network byte order (big endian)

@@ -9,6 +9,7 @@
 
 const int PORT_NUMBER = 2023;
 const int BUF_SZ = 1024;
+const char* LOCAL_IP_OF_SERVER = "";
 
 int main()
 {
@@ -39,8 +40,8 @@ int main()
     server_address_info.sin_port = htons(PORT_NUMBER);
     //                             ^^^^^^^^^^^^^^^^^
     //                             converts the port number to network byte order (big endian)
-    // server_address_info.sin_addr.s_addr = inet_addr("217.197.0.187");
-    server_address_info.sin_addr.s_addr = INADDR_ANY;
+    server_address_info.sin_addr.s_addr = inet_addr(LOCAL_IP_OF_SERVER);
+    // server_address_info.sin_addr.s_addr = INADDR_ANY;
 
     // SEND MESSAGE TO SERVER
     socklen_t size_of_server_address_info = sizeof(server_address_info);
@@ -52,8 +53,15 @@ int main()
         (const struct sockaddr*)&server_address_info,
         size_of_server_address_info
     );
-    std::cout << "Message sent to server\n";
+    std::cout << "Message sent to server" << std::endl;
 
+    // RECEIVE MESSAGE FROM SERVER
+    // set timeout for recvfrom
+    struct timeval read_timeout;
+    read_timeout.tv_sec = 0;
+    read_timeout.tv_usec = 10;
+    setsockopt(socket_file_descriptor, SOL_SOCKET, SO_RCVTIMEO, &read_timeout, sizeof read_timeout);
+    // receive message
     int number_of_bytes_received = recvfrom(
         socket_file_descriptor,
         (char*)buffer,
@@ -62,6 +70,14 @@ int main()
         (struct sockaddr*)&server_address_info,
         &size_of_server_address_info
     );
+    // check if recvfrom was successful (i.e. if it received any bytes)
+    bool recvfrom_was_unsuccessful = (number_of_bytes_received < 0);
+    if (recvfrom_was_unsuccessful)
+    {
+        perror("recvfrom failed");
+        exit(EXIT_FAILURE);
+    }
+    // print received message
     buffer[number_of_bytes_received] = '\0'; // add null terminator
     std::cout << "Message from server: " << buffer << std::endl;
 
